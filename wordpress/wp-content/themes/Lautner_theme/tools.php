@@ -2,6 +2,8 @@
 
 require_wp_db();
 
+$localPrefix = __DIR__ . '/../../uploads';
+
 function get_classes()
 {
     global $wpdb;
@@ -57,8 +59,12 @@ function get_controls()
 
 function upload_file(array $file, $type)
 {
-    $localPrefix = __DIR__ . '/../../uploads';
     $path = "/$type/" . uniqid() . '.' . pathinfo($file["name"], PATHINFO_EXTENSION);
     move_uploaded_file($file['tmp_name'], $localPrefix . $path);
     return $path;
+}
+
+function fullUrl_from_url($url)
+{
+    return get_bloginfo('url') . '/wp-content/uploads' . $url;
 }

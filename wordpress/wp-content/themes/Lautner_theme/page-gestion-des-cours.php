@@ -125,7 +125,7 @@ get_header('entProfesseur');
         <td><?=$c->name?></td>
         <td><?=$classes[$c->class_id]?></td>
         <td><?=$subjects[$c->subject_id]?></td>
-        <td>Bite<td>
+        <td><span><a href="<?=fullUrl_from_url($c->file_url)?>">OPEN</a></span><td>
     </tr><?php 
     }?>
 </table>
