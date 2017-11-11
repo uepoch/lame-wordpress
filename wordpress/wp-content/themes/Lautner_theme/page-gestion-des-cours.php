@@ -1,84 +1,115 @@
 <?php
-    if(!current_user_can('professeur') ) {
-        wp_redirect(get_bloginfo('url').'/accueil/');
+
+if (!current_user_can('professeur')) {
+    wp_redirect(get_bloginfo('url').'/accueil/');
+}
+
+require_once "tools.php";
+
+function handle_cours_upload()
+{
+    global $wpdb;
+
+    // input validation
+    if (empty($_POST['class'])) {
+        return "Veuillez selectionner une classe";
+    }
+        $classId = (int)$_POST['class'];
+
+    if (empty($_POST['subject'])) {
+        return "Veuillez selectionner une matière";
+    }
+        $subjectId = (int)$_POST['subject'];
+
+    if (empty($_POST['course_name'])) {
+        return "Veuillez donner un nom pour le cours";
     }
 
-    if (!empty($_FILES["file"])) {
-		$name = basename($_FILES["file"]["name"]);
-		$uploadDir = "/tmp/cours";
-		$path = "$uploadDir/$name";
-	    move_uploaded_file($_FILES["file"]['tmp_name'], $path);
+    $courseName = $_POST['course_name'];
 
-	    echo "File uploaded: $path\n";
+    // file upload
+    $localPrefix = __DIR__ . '/../../uploads';
+    $path = '/courses/' . uniqid() . '.' . pathinfo($_FILES["file"]["name"], PATHINFO_EXTENSION);
+    move_uploaded_file($_FILES["file"]['tmp_name'], $localPrefix . $path);
 
-	    $wpdb->show_errors();
+    $result = $wpdb->query($wpdb->prepare(
+        "
+			INSERT INTO courses (
+				name,
+				subject_id,
+				class_id,
+				file_url
+			) VALUES (
+				%s, %d, %d, %s
+			)
+		",
+        $courseName,
+        $subjectId,
+        $classId,
+        $path
+    ));
 
-		$wpdb->query( 
-			$wpdb->prepare("
-				INSERT INTO wp_cours (
-					user_id,
-					nomcours,
-					matiere,
-					classe,
-					path
-				) VALUES (
-					%d, %s, %s, %s, %s
-				)
-			",	get_current_user_id(), $_POST['nomcours'], $_POST['matiere'], $_POST['niv'], $path
-		));
+    if (!$result) {
+        return "Une erreur est survenue lors de l'enregistrement du cours ({$wpdb->last_error})";
+    }
 
-		$wpdb->print_error();
-		die;
-	}
+    return true;
+}
 
-
-
-
+$uploadStatus = null;
+if (!empty($_FILES["file"]['tmp_name'])) {
+    $uploadStatus = handle_cours_upload();
+}
 
 get_header('entProfesseur');
 ?>
 
-	<div class="container">
-	
-		<form action="" method="post" enctype="multipart/form-data">
+<div class="container">
 
-			<div>Nom du cours/de la correction :
-				<input class="champtext" type="text" name="nomcours" placeholder="...">
-			</div>
+    <?php if ($uploadStatus === true) { ?>
+        <p>
+            Votre cours a été enregistré avec succès
+        </p>
+    <?php } elseif ($uploadStatus !== null) {?>
+        <p><?=$uploadStatus?></p>
+    <?php } ?>
 
-			 <div>
-				<div>Matière :
-					<select name="matiere" >
-					  <option value="math">Mathématiques</option>
-					  <option value="fran">Français</option>
-					  <option value="histgeo">Histoire/Géographie</option>
-					  <option value="angl">Anglais</option>
-					</select>
-				</div>
-			</div>
+    <form action="" method="post" enctype="multipart/form-data">
 
+        <div>Nom du cours/de la correction :
+            <input class="champtext" type="text" name="course_name" placeholder="Nom du cours">
+        </div>
 
-			 <div>
-				<div>Classe :
-					<select name="niv" >
-					  <option value="CP">CP</option>
-					  <option value="CE1">CE1</option>
-					  <option value="CE2">CE2</option>
-					  <option value="CM1">CM1</option>
-					  <option value="CM2">CM2</option>
-					</select>
-				</div>
-			</div>
+        <div>
+            <div>Matière :
+                <select name="subject" >
+                    <?php foreach (get_subjects() as $id => $name) { ?>
+                        <option value="<?=$id?>"><?=$name?></option>
+                    <?php } // foreach ?>
+                </select>
+            </div>
+        </div>
 
 
-			<div>
-				<div>Fichier :</div> <input class="" type="file" name="file" placeholder=""><br>
-			</div>
+            <div>
+            <div>Classe :
+                <select name="class">
+                    <?php foreach (get_classes() as $id => $name) { ?>
+                        <option value="<?=$id?>"><?=$name?></option>
+                    <?php } // foreach ?>
+                </select>
+            </div>
+        </div>
 
-			<input class="validation" type="submit" value="VALIDER">
 
-		</form>
+        <div>
+            <div>Fichier :</div> <input class="" type="file" name="file" placeholder=""><br>
+        </div>
 
-	</div>
+        <input class="validation" type="submit" value="VALIDER">
+
+    </form>
+
+</div>
 
 
