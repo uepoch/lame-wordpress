@@ -5,6 +5,8 @@ if (!current_user_can('professeur')) {
 }
 
 require_once "tools.php";
+$subjects = get_subjects();
+$classes = get_classes();
 
 function handle_cours_upload()
 {
@@ -26,7 +28,6 @@ function handle_cours_upload()
     }
 
     $courseName = $_POST['course_name'];
-
     // file upload
     $localPrefix = __DIR__ . '/../../uploads';
     $path = '/courses/' . uniqid() . '.' . pathinfo($_FILES["file"]["name"], PATHINFO_EXTENSION);
@@ -83,7 +84,7 @@ get_header('entProfesseur');
         <div>
             <div>Matière :
                 <select name="subject" >
-                    <?php foreach (get_subjects() as $id => $name) { ?>
+                    <?php foreach ($subjects as $id => $name) { ?>
                         <option value="<?=$id?>"><?=$name?></option>
                     <?php } // foreach ?>
                 </select>
@@ -94,7 +95,7 @@ get_header('entProfesseur');
             <div>
             <div>Classe :
                 <select name="class">
-                    <?php foreach (get_classes() as $id => $name) { ?>
+                    <?php foreach ($classes as $id => $name) { ?>
                         <option value="<?=$id?>"><?=$name?></option>
                     <?php } // foreach ?>
                 </select>
@@ -111,5 +112,24 @@ get_header('entProfesseur');
     </form>
 
 </div>
-
-
+<div class="container">
+<table border=1>
+<tr>
+		<th>ID</th>
+		<th>Nom</th>
+		<th>Class</th>
+		<th>Sujet</th>
+		<th>Actions</th>
+</tr>
+<?php 
+    foreach(get_courses() as $id => $c) { ?>
+    <tr>
+        <td><?=$id?></td>
+        <td><?=$c->name?></td>
+        <td><?=$classes[$c->class_id]?></td>
+        <td><?=$subjects[$c->subject_id]?></td>
+        <td>Bite<td>
+    </tr><?php 
+    }?>
+</table>
+</div>

@@ -24,9 +24,14 @@ function get_subjects()
     return $res;
 }
 
-function get_objects($type){
+function get_objects($type, $fields = []){
     global $wpdb;
-    $results = $wpdb->query($wpdb->prepare("SELECT * FROM %s", $type));
+    if (empty( $fields )) {
+        $fields = "*";
+    } else {
+        $fields = implode(", ", $fields);
+    }
+    $results = $wpdb->get_results("SELECT " . $fields . " FROM " . $type);
     $res = [];
     foreach ($results as $r) {
         $res[$r->id] = $r;
@@ -34,14 +39,14 @@ function get_objects($type){
     return $res;
 }
 
-function get_courses() {
-    return get_objects("courses");
+function get_courses($fields = []) {
+    return get_objects("courses", $fields);
 }
 
-function get_marks() {
-    return get_objects("marks");
+function get_marks($fields = []) {
+    return get_objects("marks", $fields);
 }
 
-function get_controls() {
-    return get_objects("controls");
+function get_controls($fields = []) {
+    return get_objects("controls", $fields);
 }
