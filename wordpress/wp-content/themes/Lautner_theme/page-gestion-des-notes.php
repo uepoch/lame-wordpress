@@ -1,117 +1,102 @@
 <?php
 
-    if(!current_user_can('professeur') ) {
-        wp_redirect(get_bloginfo('url').'/accueil/');
+if (!current_user_can('professeur')) {
+    wp_redirect(get_bloginfo('url') . '/accueil/');
+}
+
+$controlId = !empty($_GET["id"]) ? (int)$_GET["id"] : -1;
+
+if (!empty($_POST)) {
+    foreach ($_POST["marks"] as $userId => $data) {
+        if ($data["mark"] === '') {
+            continue;
+        }
+
+        $mark = strtr($data["mark"], ",", ".");
+        $mark = (float)$mark;
+        $description = stripslashes($data['description']);
+
+        $hasMark = $wpdb->get_col($wpdb->prepare("
+			SELECT COUNT(*) FROM marks
+			WHERE user_id = %d && control_id = %d
+        ", $userId, $controlId))[0] > 0;
+
+        if ($hasMark) {
+            $wpdb->query($wpdb->prepare("
+				UPDATE marks
+				SET
+					mark = %f,
+					description = %s
+			", $mark, $description));
+        } else {
+            $wpdb->query($wpdb->prepare("
+				INSERT INTO marks (
+					user_id,
+					control_id,
+					mark,
+					description
+				) VALUES (
+					%d, %d, %f, %s
+				)
+			", $userId, $controlId, $mark, description));
+        }
     }
+}
 
-
- /*   $result = mysql_query("SELECT user_nicename FROM wp_users");
-/*
-	if (!$result) {
-	    echo 'Could not run query: ' . mysql_error();
-	    exit;
-	}
-	$row = mysql_fetch_row($result);
-
-	echo $row[0]; // 42
-	echo $row[1]; // the email value
-
-
- /*   $nomEleve = "SELECT user_nicename FROM wp_users WHERE classe = 'niv'";
- 	$bdd = mysql_connect('localhost', 'root', 'root');	
-    mysql_select_db('wordpress');
-    $result = mysql_query($nomEleve);
-   
-
- /*   foreach($result as $user){
-    	echo $user['user_nicename'];
-    }
-*/
-
-
+$controls = $wpdb->get_results($wpdb->prepare("SELECT * FROM controls WHERE id = %d", $controlId));
+$marks = [];
+$control = null;
+if ($controls) {
+    $control = $controls[0];
+    $marks = $wpdb->get_results($wpdb->prepare("
+		SELECT *
+		FROM wp_users u
+		JOIN wp_usermeta um
+		ON um.user_id = u.id && um.meta_key = 'classe'
+		LEFT JOIN marks m
+		ON m.user_id = u.id
+		WHERE
+			(m.control_id = %s || m.control_id is null) &&
+			um.meta_value = %d
+	", $control->id, $control->class_id));
+}
 
 
 get_header('entProfesseur');
 ?>
 
-	<div class="container">
-	
-		<form action="" method="post" enctype="multipart/form-data">
+<?php if (!$control) { ?>
+    <p>Ce contrôle n'existe pas</p>
+<?php return;
+}?>
 
-			 <div>
-				<div>Classe :
-					<select name="niv" >
-					  <option value="CP">CP</option>
-					  <option value="CE1">CE1</option>
-					  <option value="CE2">CE2</option>
-					  <option value="CM1">CM1</option>
-					  <option value="CM2">CM2</option>
-					</select>
-				</div>
-			</div>
+<p>
+    Notes pour le controle <?=$control->name?>
+</p>
 
-
-			 <div>
-				<div>Eleve :
-					<select name="eleve" >
-					  <option value="CP">CP</option>
-					  <option value="CE1">CE1</option>
-					  <option value="CE2">CE2</option>
-					  <option value="CM1">CM1</option>
-					  <option value="CM2">CM2</option>
-					</select>
-				</div>
-			</div>
-
-
-			 <div>
-				<div>Matière :
-					<select name="matiere" >
-					  <option value="math">Mathématiques</option>
-					  <option value="fran">Français</option>
-					  <option value="histgeo">Histoire/Géographie</option>
-					  <option value="angl">Anglais</option>
-					</select>
-				</div>
-			</div>
-
-
-			<div>Numéro du contrôle associé :
-				<input class="champtext" type="text" name="numcontrole" placeholder="Numero uniquement, exemple : 001">
-			</div>
-
-
-			<div>Note :
-				<input class="champtext" type="text" name="note" placeholder="...">
-			</div>
-
-
-			<input class="validation" type="submit" value="VALIDER">
-
-		</form>
-
-	</div>
-
-
-
-<table border="1">
-<tr>
- <th>ID</th>
- <th>Nom</th>
- <th>Classe</th>
-</tr>
-
-  <?php
-	
-	$a = get_users( 'role=eleve' );
-	print_r($a);
-	// foreach ( $result as $print )   {
-	//   echo '<tr>';
-	//   echo '<td>' . $print->firstname .'</td>';
-	// 		  echo '<td>' . $print->lastname  .'</td>';
-	// 		  echo '<td>' . $print->points    .'</td>';
-	//   echo '</tr>';
-	// 	}
-  ?>
-
-</table>
+<form action="" method="post">
+    <table>
+        <tr>
+            <td>
+                Nom de l'élève
+            </td>
+            <td>
+                Note
+            </td>
+        </tr>
+        <?php foreach ($marks as $userMark) {?>
+        <tr>
+            <td><?=$userMark->user_nicename?></td>
+            <td><input type="text" name="marks[<?=$userMark->ID?>][mark]" value="<?=strtr($userMark->mark, ".", ",")?>"> / 20</td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <textarea name="marks[<?=$userMark->ID?>][description]"><?=$userMark->description?></textarea>
+            </td>
+        </tr>
+        <?php } ?>
+    </table>
+    <p>
+        <input class="validation" type="submit" value="VALIDER">
+    </p>
+</form>

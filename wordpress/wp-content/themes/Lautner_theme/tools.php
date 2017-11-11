@@ -4,7 +4,6 @@ require_wp_db();
 
 const localPrefix = __DIR__ . '/../../uploads';
 
-
 function get_classes()
 {
     global $wpdb;
