@@ -24,7 +24,8 @@ function get_subjects()
     return $res;
 }
 
-function get_objects($type){
+function get_objects($type)
+{
     global $wpdb;
     $results = $wpdb->query($wpdb->prepare("SELECT * FROM %s", $type));
     $res = [];
@@ -34,14 +35,25 @@ function get_objects($type){
     return $res;
 }
 
-function get_courses() {
+function get_courses()
+{
     return get_objects("courses");
 }
 
-function get_marks() {
+function get_marks()
+{
     return get_objects("marks");
 }
 
-function get_controls() {
+function get_controls()
+{
     return get_objects("controls");
+}
+
+function upload_file(array $file, $type)
+{
+    $localPrefix = __DIR__ . '/../../uploads';
+    $path = "/$type/" . uniqid() . '.' . pathinfo($file["name"], PATHINFO_EXTENSION);
+    move_uploaded_file($file['tmp_name'], $localPrefix . $path);
+    return $path;
 }
