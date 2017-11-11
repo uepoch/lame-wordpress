@@ -2,17 +2,21 @@
 
 if (!current_user_can('professeur')) {
     wp_redirect(get_bloginfo('url').'/accueil/');
+    exit();
 }
 
 require_once "tools.php";
 
+$deleteStatus = null;
 if (!empty($_GET['delete'])) {
-    $id = $_GET['delete'];
+    $id = intval($_GET['delete']);
     if (is_int($id)) {
-        $res = $wpdb->query($wpdb->prepare('SELECT id, file_url, correction_url FROM controls WHERE id = %d LIMIT 1', $id));
+        $res = $wpdb->get_results($wpdb->prepare('SELECT id, file_url, correction_url FROM controls WHERE id = %d LIMIT 1', $id));
         if (!empty($res)) {
-            unlink(localPrefix . $res[0]->file_url);
-            if (!empty($res[0]->correction_path)) {
+            if (!empty($res[0]->file_url) && is_writable(realpath(localPrefix . $res[0]->file_url))) {
+                unlink(localPrefix . $res[0]->file_url);
+            }
+            if (!empty($res[0]->correction_url) && is_writeable(realpath(localPrefix . $res[0]->correction_url))) {
                 unlink(localPrefix . $res[0]->correction_url);
             }
             $req = $wpdb->delete(
@@ -21,14 +25,18 @@ if (!empty($_GET['delete'])) {
                 '%d'
             );
             if ($req === false) {
-                die("SQL Error when deleting ID: ". $id);
+                $deleteStatus = "SQL Error when deleting ID: ". $id;
             } else {
-                echo "Success !";
+                $deleteStatus = true;
             }
         } else {
-            die("You tried to delete a wrong ID");
+            $deleteStatus = "You tried to delete a wrong ID";
         }
+    } else {
+        $deleteStatus = "Wrong format for ID:". $id;
     }
+    // wp_redirect( get_page_link());
+    // exit();
 }
 
 function handle_course_upload()
@@ -102,6 +110,13 @@ get_header('entProfesseur');
     <?php } elseif ($uploadStatus !== null) {?>
         <p><?=$uploadStatus?></p>
     <?php } ?>
+    <?php if ($deleteStatus === true) { ?>
+        <p>
+            Votre contrôle a été supprimé avec succès
+        </p>
+    <?php } elseif ($deleteStatus !== null) {?>
+        <p><?=$deleteStatus?></p>
+    <?php } ?>
 
     <form action="" method="post" enctype="multipart/form-data">
 
@@ -162,6 +177,7 @@ get_header('entProfesseur');
         <td>
             <span><a href="<?=fullUrl_from_url($c->file_url)?>">OPEN</a></span> <?php if (!empty($c->correction_url)) { ?>
             <span><a href="<?=fullUrl_from_url($c->correction_url)?>">OPEN</a></span> <?php } ?>
+            <span><a href="<?=get_page_link() . "?delete=" . $c->id ?>">DELETE</a></span>
         <td>
     </tr><?php 
     }?>

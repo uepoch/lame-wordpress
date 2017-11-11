@@ -6,6 +6,36 @@ if (!current_user_can('professeur')) {
 
 require_once "tools.php";
 
+$deleteStatus;
+if (!empty($_GET['delete'])) {
+    $id = intval($_GET['delete']);
+    if (is_int($id)) {
+        $res = $wpdb->get_results($wpdb->prepare('SELECT id, file_url FROM courses WHERE id = %d LIMIT 1', $id));
+        if (!empty($res)) {
+            if (!empty($res[0]->file_url) && is_writable(realpath(localPrefix . $res[0]->file_url))) {
+                unlink(localPrefix . $res[0]->file_url);
+            }
+            $req = $wpdb->delete(
+                'courses',
+                array('id' => $id),
+                '%d'
+            );
+            if ($req === false) {
+                $deleteStatus = "SQL Error when deleting ID: ". $id;
+            } else {
+                $deleteStatus = true;
+            }
+        } else {
+            $deleteStatus = "You tried to delete a wrong ID";
+        }
+    } else {
+        $deleteStatus = "Wrong format for ID:". $id;
+    }
+    // wp_redirect( get_page_link());
+    // exit();
+}
+
+
 function handle_course_upload()
 {
     global $wpdb;
@@ -123,7 +153,10 @@ get_header('entProfesseur');
         <td><?=$c->name?></td>
         <td><?=$classes[$c->class_id]?></td>
         <td><?=$subjects[$c->subject_id]?></td>
-        <td><span><a href="<?=fullUrl_from_url($c->file_url)?>">OPEN</a></span><td>
+        <td>
+            <span><a href="<?=fullUrl_from_url($c->file_url)?>">OPEN</a></span>
+            <span><a href="<?=get_page_link() . "?delete=" . $c->id ?>">DELETE</a></span>
+        </td>
     </tr><?php 
     }?>
 </table>
