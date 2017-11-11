@@ -52,9 +52,25 @@ function get_marks()
     return get_objects("marks");
 }
 
-function get_controls()
+function get_controls(array $filters = [])
 {
-    return get_objects("controls");
+    global $wpdb;
+    $availableFilters = ['class_id', 'subject_id'];
+    $filters = array_intersect_key($filters, array_flip($availableFilters));
+
+    $q = "SELECT * FROM controls WHERE 1 = %d";
+    $qargs = [1];
+    foreach ($filters as $k => $v) {
+        $q .= " && $k = %s";
+        $qargs[] = $v;
+    }
+    array_unshift($qargs, $q);
+    $results = $wpdb->get_results(call_user_func_array([$wpdb, "prepare"], $qargs));
+    $res = [];
+    foreach ($results as $r) {
+        $res[$r->id] = $r;
+    }
+    return $res;
 }
 
 function upload_file(array $file, $type)
