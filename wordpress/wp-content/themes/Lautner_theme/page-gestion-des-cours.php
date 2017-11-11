@@ -6,7 +6,7 @@ if (!current_user_can('professeur')) {
 
 require_once "tools.php";
 
-$deleteStatus;
+$deleteStatus = null;
 if (!empty($_GET['delete'])) {
     $id = intval($_GET['delete']);
     if (is_int($id)) {

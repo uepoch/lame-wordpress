@@ -1,5 +1,16 @@
 <?php
 
+$user = wp_get_current_user();
+if (in_array( 'professeur', (array) $user->roles )) {
+    wp_redirect(get_bloginfo('url').'/accueil-ent-professeur/');
+}
+else if (in_array( 'eleve', (array) $user->roles )) {
+    wp_redirect(get_bloginfo('url').'/accueil-ent-eleve/');
+}
+else if(in_array( 'wait', (array) $user->roles )) {
+    wp_redirect(get_bloginfo('url').'/valid/');
+} else {
+
  if( isset($_POST['user_login']) && isset($_POST['user_password']) ){
       $creds = array(
         'user_login' =>  $_POST['user_login'],
@@ -25,6 +36,7 @@
             }
       }
     
+}
 }
 
 
