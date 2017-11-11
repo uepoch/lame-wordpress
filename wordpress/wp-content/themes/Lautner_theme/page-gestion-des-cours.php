@@ -21,15 +21,15 @@ if (!empty($_GET['delete'])) {
                 '%d'
             );
             if ($req === false) {
-                $deleteStatus = "SQL Error when deleting ID: ". $id;
+                $deleteStatus = "Une erreur SQL est survenue ". $id;
             } else {
                 $deleteStatus = true;
             }
         } else {
-            $deleteStatus = "You tried to delete a wrong ID";
+            $deleteStatus = "L'ID n'est pas présent";
         }
     } else {
-        $deleteStatus = "Wrong format for ID:". $id;
+        $deleteStatus = "Mauvais format ID:". $id;
     }
     // wp_redirect( get_page_link());
     // exit();
@@ -98,6 +98,13 @@ get_header('entProfesseur');
         </p>
     <?php } elseif ($uploadStatus !== null) {?>
         <p><?=$uploadStatus?></p>
+    <?php } ?>
+    <?php if ($deleteStatus === true) { ?>
+        <p>
+            Votre cours a été supprimé avec succès
+        </p>
+    <?php } elseif ($deleteStatus !== null) {?>
+        <p><?=$deleteStatus?></p>
     <?php } ?>
 
     <form action="" method="post" enctype="multipart/form-data">
