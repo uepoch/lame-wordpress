@@ -24,7 +24,8 @@ function get_subjects()
     return $res;
 }
 
-function get_objects($type, $fields = []){
+function get_objects($type)
+{
     global $wpdb;
     if (empty( $fields )) {
         $fields = "*";
@@ -39,14 +40,25 @@ function get_objects($type, $fields = []){
     return $res;
 }
 
-function get_courses($fields = []) {
-    return get_objects("courses", $fields);
+function get_courses()
+{
+    return get_objects("courses");
 }
 
-function get_marks($fields = []) {
-    return get_objects("marks", $fields);
+function get_marks()
+{
+    return get_objects("marks");
 }
 
-function get_controls($fields = []) {
-    return get_objects("controls", $fields);
+function get_controls()
+{
+    return get_objects("controls");
+}
+
+function upload_file(array $file, $type)
+{
+    $localPrefix = __DIR__ . '/../../uploads';
+    $path = "/$type/" . uniqid() . '.' . pathinfo($file["name"], PATHINFO_EXTENSION);
+    move_uploaded_file($file['tmp_name'], $localPrefix . $path);
+    return $path;
 }

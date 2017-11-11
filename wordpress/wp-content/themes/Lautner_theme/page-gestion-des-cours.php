@@ -8,7 +8,7 @@ require_once "tools.php";
 $subjects = get_subjects();
 $classes = get_classes();
 
-function handle_cours_upload()
+function handle_course_upload()
 {
     global $wpdb;
 
@@ -16,22 +16,19 @@ function handle_cours_upload()
     if (empty($_POST['class'])) {
         return "Veuillez selectionner une classe";
     }
-        $classId = (int)$_POST['class'];
+    $classId = (int)$_POST['class'];
 
     if (empty($_POST['subject'])) {
         return "Veuillez selectionner une matière";
     }
-        $subjectId = (int)$_POST['subject'];
+    $subjectId = (int)$_POST['subject'];
 
     if (empty($_POST['course_name'])) {
         return "Veuillez donner un nom pour le cours";
     }
-
     $courseName = $_POST['course_name'];
-    // file upload
-    $localPrefix = __DIR__ . '/../../uploads';
-    $path = '/courses/' . uniqid() . '.' . pathinfo($_FILES["file"]["name"], PATHINFO_EXTENSION);
-    move_uploaded_file($_FILES["file"]['tmp_name'], $localPrefix . $path);
+
+    $path = upload_file($_FILES["file"], "courses");
 
     $result = $wpdb->query($wpdb->prepare(
         "
@@ -59,7 +56,7 @@ function handle_cours_upload()
 
 $uploadStatus = null;
 if (!empty($_FILES["file"]['tmp_name'])) {
-    $uploadStatus = handle_cours_upload();
+    $uploadStatus = handle_course_upload();
 }
 
 get_header('entProfesseur');
@@ -77,7 +74,7 @@ get_header('entProfesseur');
 
     <form action="" method="post" enctype="multipart/form-data">
 
-        <div>Nom du cours/de la correction :
+        <div>Nom du cours :
             <input class="champtext" type="text" name="course_name" placeholder="Nom du cours">
         </div>
 
