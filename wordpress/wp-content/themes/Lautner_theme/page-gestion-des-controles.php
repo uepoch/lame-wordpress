@@ -6,6 +6,31 @@ if (!current_user_can('professeur')) {
 
 require_once "tools.php";
 
+if (!empty($_GET['delete'])) {
+    $id = $_GET['delete'];
+    if (is_int($id)) {
+        $res = $wpdb->query($wpdb->prepare('SELECT id, file_url, correction_url FROM controls WHERE id = %d LIMIT 1', $id));
+        if (!empty($res)) {
+            unlink(localPrefix . $res[0]->file_url);
+            if (!empty($res[0]->correction_path)) {
+                unlink(localPrefix . $res[0]->correction_url);
+            }
+            $req = $wpdb->delete(
+                'controls',
+                array('id' => $id),
+                '%d'
+            );
+            if ($req === false) {
+                die("SQL Error when deleting ID: ". $id);
+            } else {
+                echo "Success !";
+            }
+        } else {
+            die("You tried to delete a wrong ID");
+        }
+    }
+}
+
 function handle_course_upload()
 {
     global $wpdb;
@@ -117,4 +142,28 @@ get_header('entProfesseur');
 
     </form>
 
+</div>
+<div class="container">
+<table border=1>
+<tr>
+		<th>ID</th>
+		<th>Nom</th>
+		<th>Class</th>
+		<th>Sujet</th>
+		<th>Actions</th>
+</tr>
+<?php 
+    foreach(get_controls() as $id => $c) { ?>
+    <tr>
+        <td><?=$id?></td>
+        <td><?=$c->name?></td>
+        <td><?=$classes[$c->class_id]?></td>
+        <td><?=$subjects[$c->subject_id]?></td>
+        <td>
+            <span><a href="<?=fullUrl_from_url($c->file_url)?>">OPEN</a></span> <?php if (!empty($c->correction_url)) { ?>
+            <span><a href="<?=fullUrl_from_url($c->correction_url)?>">OPEN</a></span> <?php } ?>
+        <td>
+    </tr><?php 
+    }?>
+</table>
 </div>

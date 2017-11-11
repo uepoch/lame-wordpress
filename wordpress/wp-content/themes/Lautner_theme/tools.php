@@ -2,7 +2,8 @@
 
 require_wp_db();
 
-$localPrefix = __DIR__ . '/../../uploads';
+const localPrefix = __DIR__ . '/../../uploads';
+
 
 function get_classes()
 {
@@ -60,7 +61,7 @@ function get_controls()
 function upload_file(array $file, $type)
 {
     $path = "/$type/" . uniqid() . '.' . pathinfo($file["name"], PATHINFO_EXTENSION);
-    move_uploaded_file($file['tmp_name'], $localPrefix . $path);
+    move_uploaded_file($file['tmp_name'], localPrefix . $path);
     return $path;
 }
 
@@ -68,3 +69,6 @@ function fullUrl_from_url($url)
 {
     return get_bloginfo('url') . '/wp-content/uploads' . $url;
 }
+
+$subjects = get_subjects();
+$classes = get_classes();

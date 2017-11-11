@@ -5,8 +5,6 @@ if (!current_user_can('professeur')) {
 }
 
 require_once "tools.php";
-$subjects = get_subjects();
-$classes = get_classes();
 
 function handle_course_upload()
 {
