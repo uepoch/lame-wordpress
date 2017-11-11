@@ -4,7 +4,7 @@ if (!current_user_can('professeur')) {
     wp_redirect(get_bloginfo('url') . '/accueil/');
 }
 
-$controlId = !empty($_GET["id"]) ? (int)$_GET["id"] : -1;
+$controlId = !empty($_GET["controlid"]) ? (int)$_GET["controlid"] : -1;
 
 if (!empty($_POST)) {
     foreach ($_POST["marks"] as $userId => $data) {

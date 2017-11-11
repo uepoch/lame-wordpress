@@ -177,9 +177,9 @@ get_header('entProfesseur');
         <td>
             <span><a href="<?=fullUrl_from_url($c->file_url)?>">OPEN</a></span> <?php if (!empty($c->correction_url)) { ?>
             <span><a href="<?=fullUrl_from_url($c->correction_url)?>">OPEN</a></span> <?php } ?>
+            <span><a href="<?=get_page_link(336) . "?controlid=" . $c->id ?>">Marks</a></span> 
             <span><a href="<?=get_page_link() . "?delete=" . $c->id ?>">DELETE</a></span>
         <td>
-    </tr><?php 
-    }?>
+    </tr><?php } ?>
 </table>
 </div>
