@@ -23,3 +23,25 @@ function get_subjects()
     }
     return $res;
 }
+
+function get_objects($type){
+    global $wpdb;
+    $results = $wpdb->query($wpdb->prepare("SELECT * FROM %s", $type));
+    $res = [];
+    foreach ($results as $r) {
+        $res[$r->id] = $r;
+    }
+    return $res;
+}
+
+function get_courses() {
+    return get_objects("courses");
+}
+
+function get_marks() {
+    return get_objects("marks");
+}
+
+function get_controls() {
+    return get_objects("controls");
+}
