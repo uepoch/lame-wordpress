@@ -190,14 +190,6 @@ get_header('entProfesseur');
 
 </div>
 <div class="container">
-<table border=1>
-<tr>
-        <th>ID</th>
-        <th>Nom</th>
-        <th>Class</th>
-        <th>Sujet</th>
-        <th>Actions</th>
-</tr>
 <?php
 $filters = [];
 if (!empty($_GET['search-subject'])) {
@@ -207,7 +199,21 @@ if (!empty($_GET['search-class'])) {
     $filters['class_id'] = $_GET['search-class'];
 }
 
-foreach (get_controls($filters) as $id => $c) { ?>
+$controls = get_controls($filters);
+if (!$controls) {
+    echo "Aucun contrôles n'ont été trouvé pour votre recherche";
+} else {
+?>
+<table border=1>
+<tr>
+        <th>ID</th>
+        <th>Nom</th>
+        <th>Class</th>
+        <th>Sujet</th>
+        <th>Actions</th>
+</tr>
+<?php
+foreach ($controls as $id => $c) { ?>
     <tr>
         <td><?=$id?></td>
         <td><?=$c->name?></td>
@@ -222,4 +228,5 @@ foreach (get_controls($filters) as $id => $c) { ?>
         <td>
     </tr><?php } ?>
 </table>
+<?php } ?>
 </div>

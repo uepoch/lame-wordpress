@@ -143,28 +143,77 @@ get_header('entProfesseur');
 
     </form>
 
+
+    <h2>Chercher un contrôle</h2>
+    <form action="" method="get">
+        <div>
+            <div>Matière :
+                <select name="search-subject">
+                    <option value="">Selectionner...</option>
+                    <?php foreach (get_subjects() as $id => $name) { ?>
+                        <option value="<?=$id?>" <?php if (!empty($_GET["search-subject"]) && $_GET["search-subject"] == $id) {
+                            echo "selected";
+} ?>><?=$name?></option>
+                    <?php } // foreach ?>
+                </select>
+            </div>
+        </div>
+
+
+        <div>
+            <div>Classe :
+                <select name="search-class">
+                    <option value="">Selectionner...</option>
+                    <?php foreach (get_classes() as $id => $name) { ?>
+                        <option value="<?=$id?>" <?php if (!empty($_GET["search-class"]) && $_GET["search-class"] == $id) {
+                            echo "selected";
+} ?>><?=$name?></option>
+                    <?php } // foreach ?>
+                </select>
+        </div>
+
+        <input class="validation" type="submit" value="VALIDER">
+    </form>
+
+
 </div>
 <div class="container">
+
+<?php
+$filters = [];
+if (!empty($_GET['search-subject'])) {
+    $filters['subject_id'] = $_GET['search-subject'];
+}
+if (!empty($_GET['search-class'])) {
+    $filters['class_id'] = $_GET['search-class'];
+}
+$courses = get_courses($filters);
+if (!$courses) {
+    echo "Aucun cours n'ont été trouvé pour votre recherche";
+} else {
+?>
 <table border=1>
 <tr>
-		<th>ID</th>
-		<th>Nom</th>
-		<th>Class</th>
-		<th>Sujet</th>
-		<th>Actions</th>
+        <th>ID</th>
+        <th>Nom</th>
+        <th>Class</th>
+        <th>Sujet</th>
+        <th>Actions</th>
 </tr>
-<?php 
-    foreach(get_courses() as $id => $c) { ?>
-    <tr>
-        <td><?=$id?></td>
-        <td><?=$c->name?></td>
-        <td><?=$classes[$c->class_id]?></td>
-        <td><?=$subjects[$c->subject_id]?></td>
-        <td>
-            <span><a href="<?=fullUrl_from_url($c->file_url)?>">OPEN</a></span>
-            <span><a href="<?=get_page_link() . "?delete=" . $c->id ?>">DELETE</a></span>
-        </td>
-    </tr><?php 
-    }?>
+<?php
+foreach ($courses as $id => $c) { ?>
+        <tr>
+            <td><?=$id?></td>
+            <td><?=$c->name?></td>
+            <td><?=$classes[$c->class_id]?></td>
+            <td><?=$subjects[$c->subject_id]?></td>
+            <td>
+                <span><a href="<?=fullUrl_from_url($c->file_url)?>">OPEN</a></span>
+                <span><a href="<?=get_page_link() . "?delete=" . $c->id ?>">DELETE</a></span>
+            </td>
+        </tr><?php
+}
+?>
 </table>
+<?php } ?>
 </div>

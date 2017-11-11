@@ -29,7 +29,7 @@ function get_subjects()
 function get_objects($type)
 {
     global $wpdb;
-    if (empty( $fields )) {
+    if (empty($fields)) {
         $fields = "*";
     } else {
         $fields = implode(", ", $fields);
@@ -42,9 +42,29 @@ function get_objects($type)
     return $res;
 }
 
-function get_courses()
+function filter_query($q, $availableFilters, $filters)
 {
-    return get_objects("courses");
+    global $wpdb;
+    $filters = array_intersect_key($filters, array_flip($availableFilters));
+
+    $q .= " WHERE 1 = %d";
+    $qargs = [1];
+    foreach ($filters as $k => $v) {
+        $q .= " && $k = %s";
+        $qargs[] = $v;
+    }
+    array_unshift($qargs, $q);
+    return $wpdb->get_results(call_user_func_array([$wpdb, "prepare"], $qargs));
+}
+
+function get_courses(array $filters = [])
+{
+    $results = filter_query("SELECT * FROM courses", ['class_id', 'subject_id'], $filters);
+    $res = [];
+    foreach ($results as $r) {
+        $res[$r->id] = $r;
+    }
+    return $res;
 }
 
 function get_marks()
@@ -54,18 +74,7 @@ function get_marks()
 
 function get_controls(array $filters = [])
 {
-    global $wpdb;
-    $availableFilters = ['class_id', 'subject_id'];
-    $filters = array_intersect_key($filters, array_flip($availableFilters));
-
-    $q = "SELECT * FROM controls WHERE 1 = %d";
-    $qargs = [1];
-    foreach ($filters as $k => $v) {
-        $q .= " && $k = %s";
-        $qargs[] = $v;
-    }
-    array_unshift($qargs, $q);
-    $results = $wpdb->get_results(call_user_func_array([$wpdb, "prepare"], $qargs));
+    $results = filter_query("SELECT * FROM controls", ['class_id', 'subject_id'], $filters);
     $res = [];
     foreach ($results as $r) {
         $res[$r->id] = $r;
