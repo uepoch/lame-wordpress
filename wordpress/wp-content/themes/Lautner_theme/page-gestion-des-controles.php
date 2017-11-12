@@ -1,6 +1,6 @@
 <?php
 
-if (!current_user_can('professeur')) {
+if (!current_user_can('professeur') && !current_user_can('eleve')) {
     wp_redirect(get_bloginfo('url').'/accueil/');
     exit();
 }
@@ -35,8 +35,6 @@ if (!empty($_GET['delete'])) {
     } else {
         $deleteStatus = "Wrong format for ID:". $id;
     }
-    // wp_redirect( get_page_link());
-    // exit();
 }
 
 function handle_course_upload()
@@ -102,65 +100,70 @@ get_header('entProfesseur');
 ?>
 
 <div class="container">
-    <h2>Ajouter un controle</h2>
-    <?php if ($uploadStatus === true) { ?>
-        <p>
-            Votre contrôle a été enregistré avec succès
-        </p>
-    <?php } elseif ($uploadStatus !== null) {?>
-        <p><?=$uploadStatus?></p>
-    <?php } ?>
-    <?php if ($deleteStatus === true) { ?>
-        <p>
-            Votre contrôle a été supprimé avec succès
-        </p>
-    <?php } elseif ($deleteStatus !== null) {?>
-        <p><?=$deleteStatus?></p>
-    <?php } ?>
+    <?php if (current_user_can('professeur')) { ?>
+    <div class="form-container">
+        <h2>Ajouter un controle</h2>
+        <?php if ($uploadStatus === true) { ?>
+            <p>
+                Votre contrôle a été enregistré avec succès
+            </p>
+        <?php } elseif ($uploadStatus !== null) {?>
+            <p><?=$uploadStatus?></p>
+        <?php } ?>
+        <?php if ($deleteStatus === true) { ?>
+            <p>
+                Votre contrôle a été supprimé avec succès
+            </p>
+        <?php } elseif ($deleteStatus !== null) {?>
+            <p><?=$deleteStatus?></p>
+        <?php } ?>
 
-    <form action="" method="post" enctype="multipart/form-data">
+        <form action="" method="post" enctype="multipart/form-data">
 
-        <div>Nom du contrôle :
-            <input class="champtext" type="text" name="course_name" placeholder="Nom du contôle">
-        </div>
-
-        <div>
-            <div>Matière :
-                <select name="subject" >
-                    <?php foreach (get_subjects() as $id => $name) { ?>
-                        <option value="<?=$id?>"><?=$name?></option>
-                    <?php } // foreach ?>
-                </select>
+            <div>Nom du contrôle :
+                <input class="champtext" type="text" name="course_name" placeholder="Nom du contôle">
             </div>
-        </div>
-
 
             <div>
-            <div>Classe :
-                <select name="class">
-                    <?php foreach (get_classes() as $id => $name) { ?>
-                        <option value="<?=$id?>"><?=$name?></option>
-                    <?php } // foreach ?>
-                </select>
+                <div>Matière :
+                    <select name="subject" >
+                        <?php foreach (get_subjects() as $id => $name) { ?>
+                            <option value="<?=$id?>"><?=$name?></option>
+                        <?php } // foreach ?>
+                    </select>
+                </div>
             </div>
-        </div>
 
-        <div>
-            <div>Fichier du contrôle :</div> <input class="" type="file" name="control_file" placeholder=""><br>
-        </div>
 
-        <div>
-            <div>Fichier de la correction :</div> <input class="" type="file" name="correction_file" placeholder=""><br>
-        </div>
+                <div>
+                <div>Classe :
+                    <select name="class">
+                        <?php foreach (get_classes() as $id => $name) { ?>
+                            <option value="<?=$id?>"><?=$name?></option>
+                        <?php } // foreach ?>
+                    </select>
+                </div>
+            </div>
 
-        <input class="validation" type="submit" value="VALIDER">
+            <div>
+                <div>Fichier du contrôle :</div> <input class="" type="file" name="control_file" placeholder=""><br>
+            </div>
 
-    </form>
+            <div>
+                <div>Fichier de la correction :</div> <input class="" type="file" name="correction_file" placeholder=""><br>
+            </div>
 
-    <h2>Chercher un contrôle</h2>
-    <form action="" method="get">
-        <div>
-            <div>Matière :
+            <input class="validation" type="submit" value="VALIDER">
+
+        </form>
+    </div>
+    <?php } ?>
+
+    <div class="form-container">
+        <h2>Chercher un contrôle</h2>
+        <form action="" method="get">
+            <div>
+                Matière :
                 <select name="search-subject">
                     <option value="">Selectionner...</option>
                     <?php foreach (get_subjects() as $id => $name) { ?>
@@ -170,11 +173,9 @@ get_header('entProfesseur');
                     <?php } // foreach ?>
                 </select>
             </div>
-        </div>
-
-
-        <div>
-            <div>Classe :
+            <?php if (current_user_can('professeur')) { ?>
+            <div>
+                Classe :
                 <select name="search-class">
                     <option value="">Selectionner...</option>
                     <?php foreach (get_classes() as $id => $name) { ?>
@@ -183,13 +184,14 @@ get_header('entProfesseur');
 } ?>><?=$name?></option>
                     <?php } // foreach ?>
                 </select>
-        </div>
+            </div>
+            <?php } ?>
 
-        <input class="validation" type="submit" value="VALIDER">
-    </form>
+            <input class="validation" type="submit" value="VALIDER">
+        </form>
+    </div>
 
-</div>
-<div class="container">
+    <div style="clear: both"></div>
 <?php
 $filters = [];
 if (!empty($_GET['search-subject'])) {
@@ -198,6 +200,9 @@ if (!empty($_GET['search-subject'])) {
 if (!empty($_GET['search-class'])) {
     $filters['class_id'] = $_GET['search-class'];
 }
+if (current_user_can('eleve')) {
+    $filters['class_id'] = get_user_meta(get_current_user_id(), "classe", true);
+}
 
 $controls = get_controls($filters);
 if (!$controls) {
@@ -205,13 +210,16 @@ if (!$controls) {
 } else {
 ?>
 <table border=1>
-<tr>
+    <tr>
         <th>ID</th>
         <th>Nom</th>
-        <th>Class</th>
-        <th>Sujet</th>
+        <th>Classe</th>
+        <th>Matière</th>
+        <?php if (current_user_can('eleve')) { ?>
+        <th>Note</th>
+        <?php } ?>
         <th>Actions</th>
-</tr>
+    </tr>
 <?php
 foreach ($controls as $id => $c) { ?>
     <tr>
@@ -219,13 +227,29 @@ foreach ($controls as $id => $c) { ?>
         <td><?=$c->name?></td>
         <td><?=$classes[$c->class_id]?></td>
         <td><?=$subjects[$c->subject_id]?></td>
+        <?php
+        if (current_user_can('eleve')) {
+            $res = $wpdb->get_col($wpdb->prepare("
+                SELECT mark
+                FROM marks
+                WHERE
+                    user_id = %d &&
+                    control_id = %d
+            ", get_current_user_id(), $c->id));
+            if ($res) {
+                echo "<td>{$res[0]}</td>";
+            }
+        }
+        ?>
         <td>
             <span><a href="<?=fullUrl_from_url($c->file_url)?>">OPEN</a></span> <?php if (!empty($c->correction_url)) { ?>
             <span><a href="<?=fullUrl_from_url($c->correction_url)?>">OPEN</a></span> <?php
 } ?>
-            <span><a href="<?=get_page_link(336) . "?controlid=" . $c->id ?>">Marks</a></span>
-            <span><a href="<?=get_page_link() . "?delete=" . $c->id ?>">DELETE</a></span>
-        <td>
+            <?php if (current_user_can('professeur')) { ?>
+                <span><a href="<?=get_page_link(336) . "?controlid=" . $c->id ?>">Marks</a></span>
+                <span><a href="<?=get_page_link() . "?delete=" . $c->id ?>">DELETE</a></span>
+            <?php } ?>
+        </td>
     </tr><?php } ?>
 </table>
 <?php } ?>

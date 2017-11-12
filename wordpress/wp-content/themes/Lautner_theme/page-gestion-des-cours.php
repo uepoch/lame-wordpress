@@ -1,6 +1,6 @@
 <?php
 
-if (!current_user_can('professeur')) {
+if (!current_user_can('professeur') && !current_user_can('eleve')) {
     wp_redirect(get_bloginfo('url').'/accueil/');
 }
 
@@ -31,8 +31,6 @@ if (!empty($_GET['delete'])) {
     } else {
         $deleteStatus = "Mauvais format ID:". $id;
     }
-    // wp_redirect( get_page_link());
-    // exit();
 }
 
 
@@ -91,7 +89,7 @@ get_header('entProfesseur');
 ?>
 
 <div class="container">
-
+    <?php if (current_user_can('professeur')) { ?>
     <?php if ($uploadStatus === true) { ?>
         <p>
             Votre cours a été enregistré avec succès
@@ -143,7 +141,7 @@ get_header('entProfesseur');
 
     </form>
 
-
+    <?php } ?>
     <h2>Chercher un contrôle</h2>
     <form action="" method="get">
         <div>
@@ -160,6 +158,7 @@ get_header('entProfesseur');
         </div>
 
 
+        <?php if (current_user_can('professeur')) { ?>
         <div>
             <div>Classe :
                 <select name="search-class">
@@ -171,6 +170,7 @@ get_header('entProfesseur');
                     <?php } // foreach ?>
                 </select>
         </div>
+        <?php } ?>
 
         <input class="validation" type="submit" value="VALIDER">
     </form>
@@ -187,6 +187,10 @@ if (!empty($_GET['search-subject'])) {
 if (!empty($_GET['search-class'])) {
     $filters['class_id'] = $_GET['search-class'];
 }
+if (current_user_can('eleve')) {
+    $filters['class_id'] = get_user_meta(get_current_user_id(), "classe", true);
+}
+
 $courses = get_courses($filters);
 if (!$courses) {
     echo "Aucun cours n'ont été trouvé pour votre recherche";
@@ -209,7 +213,9 @@ foreach ($courses as $id => $c) { ?>
             <td><?=$subjects[$c->subject_id]?></td>
             <td>
                 <span><a href="<?=fullUrl_from_url($c->file_url)?>">OPEN</a></span>
+                <?php if (current_user_can('professeur')) { ?>
                 <span><a href="<?=get_page_link() . "?delete=" . $c->id ?>">DELETE</a></span>
+                <?php } ?>
             </td>
         </tr><?php
 }
