@@ -96,7 +96,11 @@ if (!empty($_FILES["control_file"]['tmp_name'])) {
     $uploadStatus = handle_course_upload();
 }
 
-get_header('entProfesseur');
+if (current_user_can('professeur')) {
+    get_header('entProfesseur');
+} else {
+    get_header('entEleve');
+}
 ?>
 
 <div class="container">

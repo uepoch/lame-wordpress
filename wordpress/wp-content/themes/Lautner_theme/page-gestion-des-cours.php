@@ -85,7 +85,12 @@ if (!empty($_FILES["file"]['tmp_name'])) {
     $uploadStatus = handle_course_upload();
 }
 
-get_header('entProfesseur');
+if (current_user_can('professeur')) {
+    get_header('entProfesseur');
+} else {
+    get_header('entEleve');
+}
+
 ?>
 
 <div class="container">
@@ -142,7 +147,7 @@ get_header('entProfesseur');
     </form>
 
     <?php } ?>
-    <h2>Chercher un contrôle</h2>
+    <h2>Chercher un cours</h2>
     <form action="" method="get">
         <div>
             <div>Matière :
