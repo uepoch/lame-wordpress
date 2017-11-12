@@ -210,7 +210,7 @@ if (current_user_can('eleve')) {
 
 $controls = get_controls($filters);
 if (!$controls) {
-    echo "Aucun contrôles n'ont été trouvé pour votre recherche";
+    echo "Aucun contrôle n'a été trouvé pour votre recherche";
 } else {
 ?>
 <table border=1>

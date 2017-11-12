@@ -198,7 +198,7 @@ if (current_user_can('eleve')) {
 
 $courses = get_courses($filters);
 if (!$courses) {
-    echo "Aucun cours n'ont été trouvé pour votre recherche";
+    echo "Aucun cours n'a été trouvé pour votre recherche";
 } else {
 ?>
 <table border=1>
